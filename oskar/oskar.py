@@ -289,6 +289,8 @@ class H5Data(object):
             ddir = 'Average'
             if self.log is not None:
                 allDF = self.log
+                allDF.columns = [re.split('^VAR:', x)[1] if len(re.split('^VAR:', x)) > 1 \
+                                 else x for x in allDF.columns.values]
             else:
                 raise Exception("self.log is None.  Try method self.load_log().")
         # data files

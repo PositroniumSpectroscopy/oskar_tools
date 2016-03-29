@@ -92,7 +92,7 @@ def sspals_loop_h5(data, hi, low, vDF, uDF, **kwargs):
             squids = squids[squids <= max_squid]
         hdat = oskar.h5_array(data, squids, hi, ignore_missing=True)
         ldat = oskar.h5_array(data, squids, low, ignore_missing=True)
-        dt = oskar.arr2dict(data[squids[0]][hi].attrs.items())['dt']
+        dt = oskar.arr2dict(data[str(squids[0])][hi].attrs.items())['dt']
         chmx = sspals.chmx(hdat, ldat, **kwargs)
         ntraces = np.shape(chmx)[0]
         if ntraces > 0:
