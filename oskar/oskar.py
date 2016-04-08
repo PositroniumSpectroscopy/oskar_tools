@@ -222,8 +222,8 @@ class H5Data(object):
                                     + squid + ".  Use ignore_missing=True if you don't care.")
         return np.concatenate(trace), arr2dict(info)
 
-    ## array data (e.g., traces)
-    def load_DF(self, squids, name='CH_L0', cols=None, ignore_missing=False):
+    ## DataFrame data (e.g., SSPALS)
+    def load_DF(self, squids, name='SSPALS', cols=None, ignore_missing=False):
         """ load HDF5 DataFrame data, default name=SSPALS.
             Returns DataFrame of all arrays for squid(s) and hdf5 attributes as:
                 pandas.DataFrame, dict
@@ -255,7 +255,7 @@ class H5Data(object):
         allDF = allDF.set_index(['SQUID', 'Repeat'])
         return allDF, arr2dict(info)
 
-    #average data
+    ## load averaged data
     def load_av(self, **kwargs):
         """Load average data files.  Return pandas.DataFrame.
            default kwargs:
@@ -268,6 +268,7 @@ class H5Data(object):
         loop = kwargs.get('loop', False)
         fils = kwargs.get('fils', [])
         ufil = kwargs.get('ufil', False)
+        lvars = kwargs.get('lvars', None)
         exclude = kwargs.get('exclude', [])
         verbose = kwargs.get('verbose', False)
         #VAR files
@@ -279,7 +280,7 @@ class H5Data(object):
                 allDF = pd.read_csv(unq_fil, sep='\t')
             else:
                 if self.log is not None:
-                    allDF = self.uDF()
+                    allDF = self.uDF(lvars=lvars)
                 else:
                     raise Exception("self.log is None.  Try method self.load_log().")
             exclude.append('unique_vars.dat')
@@ -316,7 +317,7 @@ class H5Data(object):
                     allDF['DATETIME'] = pd.to_datetime(allDF['DATETIME'])
                 return allDF
 
-    # load count data
+    ## load count data
     def load_count(self, names=['CH_A0'], folder='Count', **kwargs):
         """ Load count event data for all RIDS.  Return pandas DataFrame.
             Reads all files in run dires/ folder/ matching: name + '_triggers.pkl
@@ -356,7 +357,7 @@ class H5Data(object):
 #
 #        with h5py.File(h5.fil,'r') as dfil:
 #            data = dfil['.']
-#            arr = oskar.data_array(data, 'CH_L1')
+#            arr = oskar.h5_array(data, 'CH_L1')
 
 ## attributes
 def varDF(data):
