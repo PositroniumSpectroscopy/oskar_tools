@@ -5,7 +5,7 @@ def readme():
         return f.read()
 
 setup(name='oskar',
-      version='0.0.1',
+      version='0.0.2',
       description='process data from oskar experiments',
       url='',
       author='Adam Deller',

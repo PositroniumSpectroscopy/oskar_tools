@@ -12,9 +12,15 @@ def dset(settings, args):
     """ parse args to assign dire, rid or arb defaults. """
     if args.verbose:
         print(settings.fil)
+    # base dire
+    if args.base is not None:
+        # overwrite default base dire
+        if args.verbose:
+            print('assign \'base\' =', args.base)
+        settings.assign('base', args.base)
     # data dire
     if args.dire is not None:
-        # overwrite default dire
+        # overwrite default data dire
         if args.verbose:
             print('assign \'dire\' =', args.dire)
         settings.assign('dire', args.dire)
@@ -62,8 +68,10 @@ def main():
     # data options
     parser = argparse.ArgumentParser(description='Set default.json values.')
     dat_parser = parser.add_argument_group('HDF5 data')
+    dat_parser.add_argument('-b', '--base', nargs=1, default=None,
+                            help='base directory, e.g. --base \"Z:\\Data\"')
     dat_parser.add_argument('-d', '--dire', nargs=1, default=None,
-                            help='data directory, e.g. --dire \"Z:\\Data\"')
+                            help='data directory. Usually defaults to "[base]\\YYYY\\mm\\dd\\rid"')
     dat_parser.add_argument('-r', '--rid', nargs=1, default=None,
                             help='rid, e.g. --rid \"20160203_185633\"')
     dat_parser.add_argument('-a', '--arb', nargs=2, default=None,

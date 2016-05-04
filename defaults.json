@@ -6,10 +6,10 @@
      "average": [
           "{'SSPALS':['t0','DF','Range','FWHM']}"
      ],
+     "base": [
+          "Z:\\Data"
+     ],
      "rid": [
           "20160224_192014"
-     ],
-     "dire": [
-          "Z:\\Data"
      ]
 }

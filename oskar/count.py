@@ -51,6 +51,7 @@ def main():
     """ find triggers per trace. Output DataFrame to pandas .pkl file(s). """
     # defaults
     settings = oskar.Defaults()
+    bdir = settings.values['base'] if 'base' in settings.values else None
     ddir = settings.values['dire'] if 'dire' in settings.values else None
     drid = settings.values['rid'] if 'rid' in settings.values else None
     dftype = settings.values['count'] if 'count' in settings.values else None
@@ -59,8 +60,10 @@ def main():
     parser = argparse.ArgumentParser(description='Count the triggers per trace \
                                     in FTYPE. Output DataFrame to .pkl file.')
     dat_parser = parser.add_argument_group('HDF5 data')
+    dat_parser.add_argument('-b', '--base', nargs=1, default=bdir,
+                            help='base directory, e.g. --base \"Z:\\Data\"')
     dat_parser.add_argument('-d', '--dire', nargs=1, default=ddir,
-                            help='data directory, e.g. --dire \"Z:\\Data\"')
+                            help='data directory. Defaults to "[base]\\YYYY\\mm\\dd\\rid"')
     dat_parser.add_argument('-r', '--rid', nargs=1, default=drid,
                             help='rid, e.g. --rid \"20160203_185633\"')
     dat_parser.add_argument('-f', '--ftype', nargs='+', default=dftype,
@@ -70,8 +73,8 @@ def main():
     trigger_parser.add_argument('-n', '--negative', action="store_true", default=False,
                                 help="negative trigger [default: False]")
     trigger_parser.add_argument('--n_bsub', dest='n_bsub', type=int, default=50,
-                               help="number of data points to use for background subtraction,\
-                               default 50.")
+                                help="number of data points to use for background subtraction,\
+                                default 50.")
     trigger_parser.add_argument('-l', '--min_level', nargs=1,
                                 default=0.001, type=float,
                                 help='trigger level (V) [default: 0.001]')
@@ -82,8 +85,8 @@ def main():
     script_parser = parser.add_argument_group('script options')
     script_parser.add_argument('-i', '--info', action="store_true", default=False,
                                help="pprint h5 file attributes")
-    script_parser.add_argument('-b', '--progress', action="store_true", default=False,
-                               help="display progress bar")
+    script_parser.add_argument('-t', '--progress', action="store_true", default=False,
+                               help="display tqdm progress bar")
     script_parser.add_argument('-q', '--quiet', action="store_true", default=False,
                                help="surpress script output")
     script_parser.add_argument('-v', '--verbose', action="store_true", default=False,
@@ -94,11 +97,16 @@ def main():
                             help="save args. (dire/ rid/ ftype) as default values")
     args = parser.parse_args()
     # data dire
+    if args.base is not None:
+        # overwrite default base directory
+        settings.assign('base', args.base)
+    else:
+        raise Exception("base directory not specified, nor found in defaults.json. Use flag --base")
     if args.dire is not None:
-        # overwrite default dire
+        # overwrite default data directory
         settings.assign('dire', args.dire)
     else:
-        raise Exception("data directory not specified, nor found in defaults.json. Use flag --dire")
+        args.dire = [None]
     # rid
     if args.rid is not None:
         # overwrite default rid
@@ -124,7 +132,7 @@ def main():
             print(rid)
         if args.verbose:
             print('loading hdf5 file')
-        h5 = oskar.H5Data(rid, args.dire[0])
+        h5 = oskar.H5Data(rid, args.base[0], args.dire[0])
         if args.info:
             h5.pprint()
         # output
@@ -166,6 +174,7 @@ def main():
                                 trace = np.negative(trace)
                             for rep, ydata in enumerate(trace):
                                 if n_bsub != 0:
+                                    # subtract zero offset
                                     ydata = ydata - np.mean(ydata[:n_bsub])
                                 events = pd.DataFrame(find_triggers_1D(ydata, dt, min_x, min_y))
                                 events['squid'] = sq
@@ -175,15 +184,15 @@ def main():
                     if not args.quiet:
                         print(name, ": no triggers found")
                 else:
-                    allDF = pd.concat(all_events, axis=0)
+                    all_df = pd.concat(all_events, axis=0)
                     del all_events
-                    allDF = allDF.reset_index(drop=True)
-                    allDF.index.name = 'EVENT'
-                    if len(allDF.index) > 0:
+                    all_df = all_df.reset_index(drop=True)
+                    all_df.index.name = 'EVENT'
+                    if len(all_df.index) > 0:
                         #save averaged data
                         out_fil = os.path.join(out_dire, name + "_triggers.pkl")
-                        allDF.to_pickle(out_fil)
-                        tot = len(allDF.index)
+                        all_df.to_pickle(out_fil)
+                        tot = len(all_df.index)
                         if not args.quiet:
                             print(name, ": Found", str(tot), " trigger events from", rtot,
                                   "traces, for", str(nsqs), "out of", str(len(squids)), "seqs.")

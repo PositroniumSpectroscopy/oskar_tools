@@ -13,6 +13,7 @@ def main():
     """ read hdf5 attributes and print result. """
     # defaults
     settings = oskar.Defaults()
+    bdir = settings.values['base'] if 'base' in settings.values else None
     ddir = settings.values['dire'] if 'dire' in settings.values else None
     drid = settings.values['rid'] if 'rid' in settings.values else None
 
@@ -21,8 +22,10 @@ def main():
     parser = argparse.ArgumentParser(description='Get HDF5 attributes for\
                                 a given run.')
     dat_parser = parser.add_argument_group('HDF5 data')
+    dat_parser.add_argument('-b', '--base', nargs=1, default=bdir,
+                            help='base directory, e.g. --base \"Z:\\Data\"')
     dat_parser.add_argument('-d', '--dire', nargs=1, default=ddir,
-                            help='data directory, e.g. --dire \"Z:\\Data\"')
+                            help='data directory. Defaults to "[base]\\YYYY\\mm\\dd\\rid"')
     dat_parser.add_argument('-r', '--rid', nargs=1, default=drid,
                             help='rid, e.g. --rid \"20160203_185633\"')
 
@@ -35,12 +38,17 @@ def main():
     def_parser.add_argument('-s', '--set', action="store_true", default=False,
                             help="save args. (dire/ rid/ ftype) as default values")
     args = parser.parse_args()
-    # data dire
+    # data
+    if args.base is not None:
+        # overwrite default base directory
+        settings.assign('base', args.base)
+    else:
+        raise Exception("base directory not specified, nor found in defaults.json. Use flag --base")
     if args.dire is not None:
-        # overwrite default dire
+        # overwrite default data directory
         settings.assign('dire', args.dire)
     else:
-        raise Exception("data directory not specified, nor found in defaults.json. Use flag --dire")
+        args.dire = [None]
     # rid
     if args.rid is not None:
         # overwrite default rid
@@ -52,21 +60,21 @@ def main():
     for rid in args.rid:
         if args.verbose:
             print('Loading hdf5 file.')
-        h5 = oskar.H5Data(rid, args.dire[0])
+        h5 = oskar.H5Data(rid, args.base[0], args.dire[0])
         h5.pprint()
         if args.verbose:
             print('Loading squid, var, and rec info.')
         h5.load_log(update=True)
-        vDF = pd.DataFrame(h5.vDF())
-        print("SQUIDS:", str(len(vDF.index)))
-        print("VARS:", str(vDF.columns.values))
-        rDF = pd.DataFrame(h5.rDF())
-        print("REC:", str(rDF.columns.values))
+        v_df = pd.DataFrame(h5.var_df())
+        print("SQUIDS:", str(len(v_df.index)))
+        print("VARS:", str(v_df.columns.values))
+        r_df = pd.DataFrame(h5.rec_df())
+        print("REC:", str(r_df.columns.values))
         if args.verbose:
             print('Searching for unique var permutations.')
-        uDF = pd.DataFrame(h5.uDF())
-        print("Unique VAR combinations:", str(len(uDF.index)))
-        print("Number of loops:", len(vDF.index)/ len(uDF.index))
+        u_df = pd.DataFrame(oskar.unique(v_df))
+        print("Unique VAR combinations:", str(len(u_df.index)))
+        print("Number of loops:", len(v_df.index)/ len(u_df.index))
         if args.verbose:
             print("Done!")
 
