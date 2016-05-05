@@ -27,11 +27,8 @@ git clone https://github.com/PositroniumSpectroscopy/oskar_tools
 
 and run
 
-```
+```bash
 cd ./oskar_tools
-```
-
-```
 python setup.py install
 ```
 
@@ -48,11 +45,26 @@ setup.py also installs console scripts for configuring oskar and analysing data 
 |oskar_dset     | configure defaults.json                  |
 |oskar_info     | print info about a run                   |
 |oskar_average  | average DataFrame data                   |
-|oskar_vrange'  | find the vertical range of waveform data |
-|oskar_sspals   | sspals analysis or waveform data         |
+|oskar_vrange   | find the vertical range of waveform data |
+|oskar_sspals   | sspals analysis of waveform data         |
 |oskar_count    | count trigger events in waveform data    |
 
-These should be accessible from a command prompt.  Run with option --help for more information.
+These should be accessible from a command prompt.  For example
+
+```bash
+oskar_info -r 20160417_164136
+
+  20160417_164136
+     Author:       AA
+     Description:  Image positron beam on MCP
+  SQUIDS: 4
+  VARS: [u'HOLD']
+  REC: []
+  Unique VAR combinations: 2
+  Number of loops: 2.0
+```
+
+Run with option --help for more information on usage.
 
 To run these scripts inside of a Jupyter notebook see 'examples/Run Analysis'
 
