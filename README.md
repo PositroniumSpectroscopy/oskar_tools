@@ -43,16 +43,14 @@ This will install the oskar package to your python environment, which can be loa
 
 setup.py also installs console scripts for configuring oskar and analysing data for a given run.  These are
 
-|script         | description                |
-|---------------|----------------------------|
-|oskar_dset     | configure defaults.json    |
-|oskar_info     | print info about a run     |
-|oskar_average  | average data               |
-|oskar_vrange'  | find the vertical range of |
-|               | waveform data              |
-|oskar_sspals   | sspals analysis            |
-|oskar_count    | count trigger events in    |
-|               | waveform data              |
+|script         | description                              |
+|---------------|------------------------------------------|
+|oskar_dset     | configure defaults.json                  |
+|oskar_info     | print info about a run                   |
+|oskar_average  | average DataFrame data                   |
+|oskar_vrange'  | find the vertical range of waveform data |
+|oskar_sspals   | sspals analysis or waveform data         |
+|oskar_count    | count trigger events in waveform data    |
 
 These should be accessible from a command prompt.  Run with option --help for more information.
 
