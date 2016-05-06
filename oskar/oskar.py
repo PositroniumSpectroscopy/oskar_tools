@@ -292,6 +292,7 @@ class H5Data(object):
                fils=[]        # file names to load from folder.  If empty loads *.dat
                ufil=False     # force use of unique_vars.dat, e.g., if analysed using lvars
                exclude=[]     # excluded file names.
+               verbose=False  # print info about files found
         """
         # options
         loop = kwargs.get('loop', False)
@@ -328,8 +329,14 @@ class H5Data(object):
             return all_df
         else:
             if len(fils) == 0:
+                # search for fils
                 fils = [x for x in glob.glob(os.path.join(self.dire, ddir, '*.dat')) \
                         if os.path.split(x)[1] not in exclude]
+            else:
+                # create full path from user fils
+                fils = [os.path.join(self.dire, ddir, x) for x in fils \
+                        if x not in exclude]
+            # check if fils is still None
             if len(fils) == 0:
                 raise IOError("no data files found")
             else:
@@ -529,6 +536,7 @@ def average_data(rids, **kwargs):
            fils=[]        # file names to load from folder.  If empty loads *.dat
            ufil=False     # force use of unique_vars.dat, e.g., if analysed using lvars
            exclude=[]     # excluded file names.
+           verbose=False  # print info about files found
     """
     # options
     loop = kwargs.get('loop', True)
@@ -560,30 +568,14 @@ def count_data(rids, names=['CH_A0'], folder='Count', include_vars=False, **kwar
             include_vars = False   # merge with matching var information
             update = False         # update log file (read hdf5 attributes -- slower)
     """
-    update = kwargs.get('update', False)
     super_dat = []
     for rid in rids:
         h5 = H5Data(rid)
-        if include_vars:
-            h5.load_log(update=update)
-            v_df = h5.var_df()
-        all_dat = []
-        for name in names:
-            cfil = os.path.join(h5.dire, folder, name + '_triggers.pkl')
-            if os.path.exists(cfil):
-                event_df = pd.read_pickle(cfil)
-                event_df['RID'] = rid
-                event_df['FTYPE'] = name
-                event_df['EVENT'] = event_df.index
-                event_df = event_df.set_index(['RID', 'FTYPE', 'EVENT'])
-                all_dat.append(event_df)
-            else:
-                raise IOError("pandas pickle file not found : " + name + '_triggers.pkl')
-        all_df = pd.concat(all_dat)
-        if include_vars:
-            all_df = all_df.merge(v_df, left_on='squid', right_index=True,
-                                  how='left')  # combine VAR data and event data
-        super_dat.append(all_df)
+        tmp = pd.DataFrame(h5.load_count(**kwargs))
+        tmp['RID'] = rid
+        tmp.set_index('RID', append=True, inplace=True)
+        tmp = tmp.reorder_levels(['RID', 'FTYPE', 'EVENT'])
+        super_dat.append(tmp)
     super_df = pd.concat(super_dat)
     return super_df
 
