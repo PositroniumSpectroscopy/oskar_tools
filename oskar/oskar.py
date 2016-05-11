@@ -125,6 +125,13 @@ class H5Data(object):
         day = self.rid[6:8]
         return os.path.join(base, year, month, day, self.rid)
 
+    def print_subfolder(self):
+        """ print subfolder for run, e.g., for exporting to webdav."""
+        year = self.rid[:4]
+        month = self.rid[4:6]
+        day = self.rid[6:8]
+        print('/'.join([year, month, day, self.rid]))
+
     def update_fils(self):
         """ path to raw data file and log file """
         # data directory
@@ -563,7 +570,7 @@ def count_data(rids, names=['CH_A0'], folder='Count', include_vars=False, **kwar
             name + '_triggers.pkl
 
         defaults:
-            NAMES = ['CH_A0']      # names of h5 data
+            names = ['CH_A0']      # names of h5 data
             folder = Count         # folder where count info is stored
             include_vars = False   # merge with matching var information
             update = False         # update log file (read hdf5 attributes -- slower)
